@@ -10,13 +10,13 @@ from kivy.core.window import Window
 
 class GuessTheWord(BoxLayout):
     def __init__(self, **kwargs):
-        super(BoxLayout, self).__init__(**kwargs)
+        super(GuessTheWord, self).__init__(**kwargs)
         self.orientation = 'vertical'
         self.padding = 10
         
         self.word_list = self.load_word_list()
         self.word = ""
-        self.guess = []
+        self.guesses = []
         self.chances = 10
         
         self.label_info = Label(text="")
@@ -31,10 +31,10 @@ class GuessTheWord(BoxLayout):
         self.label_chance = Label(text="")
         self.add_widget(self.label_chance)
         
-        self.button_reset = Label(text="Ganti Kata", on_press = self.change_word)
+        self.button_reset = Button(text="Change The Word", on_press = self.change_word)
         self.add_widget(self.button_reset)
         
-        self.button_stop = Label(text="Stop Game", on_press = self.stop_game)
+        self.button_stop = Button(text="Stop Game", on_press = self.stop_game)
         self.add_widget(self.button_stop)
         
         self.reset_game()
@@ -53,9 +53,9 @@ class GuessTheWord(BoxLayout):
             button = Button(text = letter, on_press=self.submit_from_keyboard)
             self.keyboard_layout.add_widget(button)
             
-    def reset_game(self, **args):
+    def reset_game(self, instance = None):
         self.word = self.get_random_word()
-        self.guess = []
+        self.guesses = []
         self.chances = 10
         self.update_label_word()
         self.enable_keyboard()
@@ -64,7 +64,7 @@ class GuessTheWord(BoxLayout):
         self.label_info.text = ""
         
     def submit(self, instance):
-        guess = instance.text_lower()
+        guess = instance.text.lower()
         
         if guess in self.guesses:
             self.label_info.text = "You have already guessed this letter before."
@@ -98,8 +98,8 @@ class GuessTheWord(BoxLayout):
             if letter in self.guesses:
                 result += letter + " "
             else:
-                hasil += "_"
-        return hasil.strip()
+                result += "_"
+        return result.strip()
     
     def disable_keyboard(self):
         for button in self.keyboard_layout.children:
@@ -121,15 +121,15 @@ class GuessTheWord(BoxLayout):
         label_result = Label(text = "Play Again?")
         content.add_widget(label_result)
         
-        button_play_again = Button(text = 'Play Again', size_hint = (None, None), size = (120, 40))
-        button_play_again.bind(on_release = self.reset_game)
+        button_play_again = Button(text="Play Again", size_hint=(None, None), size=(120, 40))
+        button_play_again.bind(on_release=self.reset_game)
         content.add_widget(button_play_again)
         
         button_quit = Button(text = 'Quit', size_hint = (None, None), size = (120, 40))
         button_quit.bind(on_release = self.stop_game)
         content.add_widget(button_quit)
         
-        popup = Popup(title = "Result", content = content, size_hint = (None, None), size = (300, 200), auto_dismiss = False)
+        popup = Popup(title = "Result: " + self.word, content = content, size_hint = (None, None), size = (300, 200), auto_dismiss = False)
         
         button_play_again.bind(on_release = popup.dismiss)
         button_quit.bind(on_release = self.stop_game)
