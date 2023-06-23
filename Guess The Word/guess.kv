@@ -1,0 +1,51 @@
+#:kivy 1.9.0
+
+<GuessTheWord>:
+    orientation: 'vertical'
+    padding: 10
+
+    Label:
+        text: root.label_info.text
+        size_hint_y: None
+        height: self.texture_size[1]
+
+    BoxLayout:
+        size_hint_y: None
+        height: self.label_word.font_size + 20
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            id: label_word
+            text: root.get_word_with_boxes()
+            font_size: 40
+            size_hint: None, 1
+            width: self.texture_size[0]
+
+    GridLayout:
+        id: keyboard_layout
+        cols: 6
+        spacing: 10
+
+    Label:
+        text: root.label_chance.text
+        size_hint_y: None
+        height: self.texture_size[1]
+
+    Button:
+        text: "Change The Word"
+        on_press: root.change_word(self)
+
+    Button:
+        text: "Stop Game"
+        on_press: root.stop_game(self)
+
+<GuessTheWordApp>:
+
+<Popup>:
+    size_hint: None, None
+    size: 300, 200
