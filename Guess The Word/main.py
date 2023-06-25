@@ -10,7 +10,7 @@ def guess_word(word, guesses):
     return result
 
 def main():
-    with open("word_list.txt", "r") as file:
+    with open("Guess The Word\word_list.txt", "r") as file:
         word_list = file.read().splitlines()
         
     word = random.choice(word_list)
