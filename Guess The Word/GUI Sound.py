@@ -1,6 +1,5 @@
 import random
-import speech_recognition as sr
-import pyttsx3
+import os
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
@@ -8,11 +7,7 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.core.window import Window
-
-engine = pyttsx3.init('sapi5')
-voices = engine.getProperty('voices')
-
-engine.setProperty('voices', voices[0].id)
+import pyttsx3
 
 class GuessTheWord(BoxLayout):
     def __init__(self, **kwargs):
@@ -24,9 +19,22 @@ class GuessTheWord(BoxLayout):
         self.word = ""
         self.guesses = []
         self.chances = 10
+        self.difficulty_level = 1
 
-        self.label_info = Label(text="")
+        self.label_info = Label(text="Select difficulty level:")
         self.add_widget(self.label_info)
+
+        self.level_layout = BoxLayout(spacing=10)
+        self.add_widget(self.level_layout)
+
+        self.button_level_1 = Button(text="Level 1", on_press=self.set_level_1)
+        self.level_layout.add_widget(self.button_level_1)
+
+        self.button_level_2 = Button(text="Level 2", on_press=self.set_level_2)
+        self.level_layout.add_widget(self.button_level_2)
+
+        self.button_level_3 = Button(text="Level 3", on_press=self.set_level_3)
+        self.level_layout.add_widget(self.button_level_3)
 
         self.label_word = Label(text="", font_size=40)
         self.add_widget(self.label_word)
@@ -42,21 +50,33 @@ class GuessTheWord(BoxLayout):
 
         self.button_stop = Button(text="Stop Game", on_press=self.stop_game)
         self.add_widget(self.button_stop)
-
-        self.reset_game()
+        
+        self.button_speak = Button(text="Speak", on_press=self.speak_button_pressed)
+        self.add_widget(self.button_speak)
 
         Window.bind(on_key_down=self.keyboard_on_key_down)
 
+        self.engine = pyttsx3.init()
+
     def load_word_list(self):
-        with open("Guess The Word\word_list.txt", "r") as file:
+        with open("Guess The Word/word_list.txt", "r") as file:
             word_list = file.read().splitlines()
         return word_list
-    
-    def speak(self, text):
-        engine = pyttsx3.init()
-        engine.say(text)
-        engine.runAndWait()
 
+    def set_level_1(self, instance):
+        self.difficulty_level = 1
+        self.start_game()
+
+    def set_level_2(self, instance):
+        self.difficulty_level = 2
+        self.start_game()
+
+    def set_level_3(self, instance):
+        self.difficulty_level = 3
+        self.start_game()
+
+    def start_game(self):
+        self.reset_game()
 
     def create_keyboard(self):
         self.keyboard_layout.clear_widgets()
@@ -72,9 +92,9 @@ class GuessTheWord(BoxLayout):
         self.update_label_word()
         self.enable_keyboard()
         self.create_keyboard()
-        self.speak("The word is " + self.word)  #
 
-        self.label_info.text = ""
+        self.label_chance.text = "Chances: {}".format(self.chances)
+        self.speak_word(self.word)
 
     def submit(self, instance):
         guess = instance.text.lower()
@@ -101,6 +121,8 @@ class GuessTheWord(BoxLayout):
                 self.label_info.text = "Sorry, you have run out of chances. The correct word is {}".format(self.word)
                 self.disable_keyboard()
                 self.show_result_popup()
+
+        self.label_chance.text = "Chances: {}".format(self.chances)
 
     def submit_from_keyboard(self, instance):
         self.submit(instance)
@@ -150,7 +172,14 @@ class GuessTheWord(BoxLayout):
         popup.open()
 
     def get_random_word(self):
-        return random.choice(self.word_list)
+        if self.difficulty_level == 1:
+            word_list = [word for word in self.word_list if len(word) <= 5]
+        elif self.difficulty_level == 2:
+            word_list = [word for word in self.word_list if 5 < len(word) <= 10]
+        else:
+            word_list = [word for word in self.word_list if len(word) > 10]
+
+        return random.choice(word_list)
 
     def update_label_word(self):
         self.label_word.text = " ".join(["■"] * len(self.word))
@@ -161,20 +190,17 @@ class GuessTheWord(BoxLayout):
         if character.isalpha():
             self.submit_from_keyboard(Button(text=character))
 
-    def get_word_with_boxes(self):
-        result = ""
-        for letter in self.word:
-            if letter in self.guesses:
-                result += letter
-            else:
-                result += u"\u25A1"  # Square character
-        return result
+    def speak_word(self, word):
+        engine = pyttsx3.init()
+        engine.say(word)
+        engine.runAndWait()
 
+    def speak_button_pressed(self, instance):
+        self.speak_word(self.word)
 
 class GuessTheWordApp(App):
     def build(self):
         return GuessTheWord()
-
 
 if __name__ == "__main__":
     GuessTheWordApp().run()
